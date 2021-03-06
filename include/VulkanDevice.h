@@ -57,17 +57,17 @@ struct VulkanDevice{
     inline void initQueueFamilies(VkQueueFlags queueFlags, VkSurfaceKHR surface = VK_NULL_HANDLE){
         auto queueFamily = getQueueFamilyProperties();
         for(uint32_t i = 0; i < queueFamily.size(); i++){
-            if((queueFamily[i].queueFlags & queueFlags) == VK_QUEUE_GRAPHICS_BIT){
+            if(!queueFamilyIndex.graphics && (queueFamily[i].queueFlags & queueFlags) == VK_QUEUE_GRAPHICS_BIT){
                 queueFamilyIndex.graphics = i;
             }
-            if((queueFamily[i].queueFlags & queueFlags) == VK_QUEUE_COMPUTE_BIT){
+            if(!queueFamilyIndex.compute && (queueFamily[i].queueFlags & queueFlags) == VK_QUEUE_COMPUTE_BIT){
                queueFamilyIndex.compute = i;
             }
-            if((queueFamily[i].queueFlags & queueFlags) == VK_QUEUE_TRANSFER_BIT){
+            if(!queueFamilyIndex.transfer && (queueFamily[i].queueFlags & queueFlags) == VK_QUEUE_TRANSFER_BIT){
                 queueFamilyIndex.transfer = i;
             }
 
-            if(surface) {
+            if(surface && !queueFamilyIndex.present) {
                 VkBool32 present;
                 vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, &present);
                 if (present) {
@@ -201,7 +201,7 @@ struct VulkanDevice{
         bufferInfo.size = size;
         bufferInfo.usage = usage;
         if(!queueIndices.empty()){
-            std::vector<u_int32_t> pIndices{queueIndices.begin(), queueIndices.end()};
+            std::vector<uint32_t> pIndices{queueIndices.begin(), queueIndices.end()};
             bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
             bufferInfo.queueFamilyIndexCount = queueIndices.size();
             bufferInfo.pQueueFamilyIndices = pIndices.data();
